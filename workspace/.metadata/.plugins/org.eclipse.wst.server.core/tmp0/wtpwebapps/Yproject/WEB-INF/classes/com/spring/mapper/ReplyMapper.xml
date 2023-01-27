@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.spring.mapper.ReplyMapper">
+ 
+ 
+ 	<!-- 댓글 등록 -->
+ 	
+ 	<insert id="enrollReply">
+ 		insert into star_reply(replyId, productId, memberId, content , rating) values(replyId.nextval, #{productId}, #{memberId} , #{content} , #{rating})
+ 	</insert>
+ 	
+ 	<select id="checkReply" resultType="integer">
+ 		select replyId from star_reply
+ 		where memberId = #{memberId} and productId = #{productId}
+ 		
+ 	</select>
+ 	
+ 	<!-- 댓글 페이징 -->
+ 	<select id="getReplyList" resultType="com.spring.model.ReplyDTO">
+ 		
+ 		<![CDATA[
+ 			select * from(
+ 				select rownum as rn, replyId, productId, memberId, content, rating , regDate
+ 				from star_reply
+ 				where rownum <= #{productPageNum} * #{productAmount} and productId = #{productId}
+ 				order by regDate desc
+ 				)
+ 				
+ 				where rn > (#{productPageNum}-1) * #{productAmount}
+ 		]]>
+ 	</select>
+ 	
+ 	
+ 	<select id="getReplyTotal" resultType="int">
+ 		
+ 		select count(*)
+ 		from star_reply
+ 		where productId = #{productId}
+ 	</select>
+ 	
+ 	<!-- 댓글 수정	 -->
+ 	
+ 	<update id="updateReply">
+ 		
+ 		update star_reply set content = #{content}, rating = #{rating}
+ 		where replyId = #{replyId}
+ 		
+ 	</update>
+ 	
+ 	<!-- 댓글 정보 꺼내오기 -->
+ 	
+ 	<select id="getUpdateReply" resultType="com.spring.model.ReplyDTO">
+ 		select * from star_reply
+ 		where replyId = #{replyId}
+ 	 </select>
+ 	 
+ 	 <!--  댓글 삭제 -->
+ 	 <delete id = "deleteReply">
+ 	 	
+ 	 	delete from star_reply
+ 	 	where replyId = #{replyId}
+ 	 	
+	 </delete>
+	 
+	 <select id="getRatingAverage" resultType="double">
+	 	select avg(rating)
+	 	from star_reply
+	 	where productId = #{productId}
+	 </select>
+	 
+	 <update id="updateRating">
+	 	update star_product
+	 	set ratingAvg = #{ratingAvg}
+	 	where productId = #{productId}
+	 </update>
+  </mapper>

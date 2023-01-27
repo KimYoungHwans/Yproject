@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.spring.mapper.ProductMapper">
+  
+  <!-- 상품 등록 -->
+  	<insert id="productEnroll">
+  		<selectKey resultType="int" keyProperty="productId" order="AFTER">
+  			SELECT MAX(productId) FROM star_product
+  		</selectKey>
+  	
+  	
+  		insert into star_product(productId,productName, productPrice ,categoryId, productInfo,cateCode)
+  		values( productId.nextVal,#{productName},#{productPrice},#{categoryId},#{productInfo},#{cateCode})
+  	</insert>
+  	
+  	
+  	<!--  검색 조건  -->
+  	<sql id="ProductCriteria">
+  		<trim prefix="(" suffix=") AND" prefixOverrides="AND">
+  			<foreach item="type" collection="typeArr">
+  				<trim prefix="AND">
+  					<choose>
+  					
+  						<when test="type == 'C'.toString()">
+  						
+  							cateCode like '%' || #{cateCode} || '%'
+  						</when>
+  						
+	  				</choose>
+  				</trim>
+  			</foreach>
+  		</trim>
+  	
+ 		<if test="productKeyword != null">
+ 			productName like '%' || #{productKeyword} || '%' and cateCode like '%' ||  #{cateCode} || '%' AND 
+ 		</if>
+  	 
+ 	</sql>
+  	<!-- 상품 목록 -->
+  	<select id="productGetList" resultType="com.spring.model.ProductVO">
+  	 
+  	  <![CDATA[
+  		select * from
+  			(
+  			select
+  				/*+INDEX_DESC(star_product SYS_C007089) */
+  				rownum as rn
+  				, productid
+  				, productname
+  				, productPrice
+  				, productInfo
+  				, cateCode
+  				, categoryid,
+  				(select cateName from star_cate where star_product.cateCode = star_cate.cateCode)
+  				 cateName
+  				, regdate
+  				, updatedate
+  			from
+  				star_product
+  			where 
+  		 ]]> 
+		<include refid="ProductCriteria"></include>
+  			<![CDATA[
+  			rownum <= #{productPageNum}  * #{productAmount})
+  			where rn > (#{productPageNum} -1) * #{productAmount}
+  			]]>
+
+  	</select>
+  	
+  	<!-- 상품 수 -->
+  	<select id="productGetTotal" resultType="int" >
+  		select count(*) from star_product
+  		
+  		<if test="productKeyword != null">
+  			where productName like '%' || #{productKeyword} || '%'
+  			
+  		</if>
+  		
+  	</select>
+  	
+  	<!-- 상품 디테일 -->
+
+	<select id="productGetDetail" resultType="com.spring.model.ProductVO">
+		select  productId, productName,cateCode,
+		categoryId, productInfo, regDate, updateDate, productPrice
+		from star_product where productId = #{productId}
+	</select>  
+ 
+ 	<!-- 제품 정보 수정 -->
+ 	<update id="productModify">
+ 		update star_product set 
+ 		productName=#{productName}, 
+ 		categoryId = #{categoryId},
+ 		productPrice=#{productPrice} ,
+ 		cateCode =#{cateCode} , 
+ 		productInfo=#{productInfo}, 
+ 		updatedate=sysdate
+		where productId = #{productId}
+ 	</update>
+ 
+ 	<!-- 제품 삭제	 -->
+ 	<delete id="productDelete">
+ 		delete from star_product where productId = #{productId}
+ 	</delete>
+ 	
+ 	<!-- 이미지 등록 -->
+ 	<insert id = "imageEnroll">
+ 		insert into star_image(productId, fileName, uploadPath, uuid) values (#{productId}, #{fileName}, #{uploadPath}, #{uuid})
+ 	</insert>
+ 	
+ 	<!--  지정 상품 이미지 전체 삭제 -->
+ 	
+ 	<delete id="deleteImageAll">
+ 		delete FROM star_image where productId = #{productId}
+ 	</delete>
+ 	
+ 	<!--  어제 날짜 이미지 리스트 -->
+ 	<select id = "checkFileList" resultType="com.spring.model.AttachImageVO">
+ 		select * from star_image where uploadpath = to_char(sysdate -1, 'yyyy\mm\dd')
+ 	</select>
+ 	
+ 	<!-- 지정 상품 이미지 정보 얻기 -->
+ 	<select id="getAttachInfo" resultType="com.spring.model.AttachImageVO">
+ 		
+ 		select * from star_image where productId = #{productId}
+ 		
+ 	</select>
+ 	
+ 	
+ 	<!--  페이징 리스트 -->
+ 	<select id="pageProductList" resultType="com.spring.model.ProductVO">
+ 		
+ 		<![CDATA[
+		select * 
+ 		from 
+			(
+ 			select 
+ 				/*+INDEX_DESC(star_product SYS_C007089) */
+ 				rownum as rn
+ 				, productId
+ 				, productName
+ 				, cateCode
+ 				,categoryId
+ 				, productPrice
+ 				, regDate
+ 				, upDateDate
+ 			from star_product
+ 			where
+ 		]]>
+ 	
+ 			<if test = "productKeyword != null">
+ 				productName like '%' ||#{productKeyword}||'%' and
+ 				
+ 			</if>
+ 			
+ 			<![CDATA[
+ 					rownum <= #{productPageNum}*{productAmount}
+ 					)
+ 					where rn > (#{productPageNum} -1) * #{productAmount}
+ 			]]>
+ 			
+ 	</select>
+ 	
+ 	<!-- 상품Id 리스트 요청  -->
+ 	<select id="getProductIdList" resultType="String">
+ 		select productId from star_product where productName like '%' || #{productKeyword} || '%'
+ 		
+ 	</select>
+ 	
+ 	<!--  카테고리 리스트 -->
+ 	<select id="cateList" resultType="com.spring.model.CateVO">
+ 		select * from star_cate order by catecode
+ 	</select>
+ 	
+ 	<!-- 음료 카테고리 리스트 -->
+ 	<select id="getCateCode1" resultType="com.spring.model.ProductVO">
+ 		<![CDATA[
+ 			select * from star_cate where cateCode > 100000 and cateCode < 200000
+ 		]]>
+ 	</select>
+ 	
+ 	<!-- 푸드 카테고리 리스트 -->
+ 	<select id="getCateCode2" resultType="com.spring.model.ProductVO">
+ 		<![CDATA[
+ 			select * from star_cate where cateCode > 200000 and cateCode < 300000 
+ 		]]>
+ 	</select>
+ 	
+ 	<!--검색 대상 카테고리 리스트 -->
+ 	<select id="getCateList" resultType="String">
+ 	
+ 		select DISTINCT cateCode from star_product where
+ 	
+ 		
+ 			productName like '%' || #{productKeyword} || '%'
+	
+ 	</select>
+ 	
+ 	<select id="getCateInfo" resultType="com.spring.model.CateFilterDTO">
+ 		
+ 			select DISTINCT count(*) cateCount, a.cateCode , b.cateName from star_product a left join star_cate b on a.cateCode = b.cateCode 
+ 		
+ 		where
+ 		
+ 			productName like '%' || #{productKeyword} || '%' and a.cateCode = #{cateCode}
+ 	
+ 		group by a.cateCode, b.cateName
+ 	 </select>
+ 	
+ 	<!-- 상품 정보 -->
+ 	<select id="getProductInfo" resultType="com.spring.model.ProductVO">
+ 		select a.productId , a.productName , a.categoryId , a.catecode , b.cateName , a.productPrice , 	a.productInfo 
+ 		from star_product a left outer join star_cate b on a.cateCode = b.cateCode
+ 		where productId = ${productId}
+ 	</select>
+ 	
+ 	
+ 	<select id="getProductIdName" resultType="com.spring.model.ProductVO">
+ 		select productId , productName from star_product
+ 		where productId = #{productId}
+ 	</select>
+  </mapper>

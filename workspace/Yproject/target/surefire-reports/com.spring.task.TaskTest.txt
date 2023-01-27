@@ -1,0 +1,8 @@
+-------------------------------------------------------------------------------
+Test set: com.spring.task.TaskTest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.255 sec <<< FAILURE! - in com.spring.task.TaskTest
+taskTests(com.spring.task.TaskTest)  Time elapsed: 0.254 sec  <<< ERROR!
+java.lang.NullPointerException
+	at com.spring.task.TaskTest.taskTests(TaskTest.java:66)
+

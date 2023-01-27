@@ -1,0 +1,7 @@
+.container-fluid{
+	margin-top: 15px;
+}
+
+.font-weight-bold{
+	color : white;
+}

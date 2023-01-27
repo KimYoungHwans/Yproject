@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?><testrun name="ProductMapperTests.productGetListTest1" project="Yproject" tests="1" started="1" failures="0" errors="0" ignored="0">
+  <testcase name="productGetListTest1" classname="com.spring.mapper.ProductMapperTests" time="0.584"/>
+</testrun>
